@@ -12,7 +12,7 @@ The editor supports live multi-user interaction, role-based permissions, per-use
 
 📷 **Screenshot / Demo GIF Placeholder**
 
-> *Add editor UI screenshot or animated demo here*
+![Collaborative Slide Editor](https://github.com/prtkgoswami/collaborative-slide-editor/blob/main/public/editor_page.png)
 
 ---
 
