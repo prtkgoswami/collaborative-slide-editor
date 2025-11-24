@@ -24,7 +24,7 @@ The editor supports live multi-user interaction, role-based permissions, per-use
 
 ## 🎥 Walkthrough Video
 
-> **5-min implementation walkthrough:** `[ADD VIDEO LINK HERE]`
+> **implementation walkthrough:** https://www.youtube.com/watch?v=ykIrmiJxMKs
 
 This video covers:
 
