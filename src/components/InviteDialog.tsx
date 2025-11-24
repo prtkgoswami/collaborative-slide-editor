@@ -73,11 +73,11 @@ const InviteDialog = ({ slideIds }: { slideIds: string[] }) => {
           onValueChange={(value) => setInviteMode(value as InviteMode)}
         >
           <div className="flex items-center gap-3">
-            <RadioGroupItem value="full" id="invite-full" />
+            <RadioGroupItem value="full" id="invite-full" style={{borderColor: "#1e2939"}}/>
             <label htmlFor="invite-full">Full Deck</label>
           </div>
           <div className="flex items-center gap-3">
-            <RadioGroupItem value="multiple" id="invite-multiple" />
+            <RadioGroupItem value="multiple" id="invite-multiple" style={{borderColor: "#1e2939"}} />
             <label htmlFor="invite-multiple">Individual Slides</label>
           </div>
         </RadioGroup>
