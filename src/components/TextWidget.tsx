@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { type TextWidgetType } from "./Editor";
 import type { Tools } from "./Editor";
 import useEditorHistory from "@/hooks/useEditorHistory";
+import { ArrowsPointingOutIcon, XMarkIcon } from "@heroicons/react/24/solid";
 
 type TextWidgetProps = {
   widgetInfo: TextWidgetType;
@@ -26,6 +27,9 @@ const TextWidget = ({
   const origin = useRef<{ x: number; y: number } | null>(null);
   const [canEdit, setCanEdit] = useState(true);
   const { startBatch, endBatch } = useEditorHistory();
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const resizeStart = useRef<{ x: number; y: number } | null>(null);
+  const initialSize = useRef<{ width: number; height: number } | null>(null);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (
@@ -50,7 +54,18 @@ const TextWidget = ({
 
   const handleDoubleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isSlideReadonly) setCanEdit(true);
+    if (isSlideReadonly) return;
+
+    setCanEdit(true);
+
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+
+      const pos = el.value.length; // or 0 if you want caret at start
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -96,6 +111,51 @@ const TextWidget = ({
     document.removeEventListener("mouseup", handleMouseUp);
   };
 
+  const handleResizeMouseMove = (e: MouseEvent) => {
+    if (!resizeStart.current || !initialSize.current) return;
+
+    const dx = e.clientX - resizeStart.current.x;
+    const dy = e.clientY - resizeStart.current.y;
+
+    const newWidth = Math.max(50, initialSize.current.width + dx);
+    const newHeight = Math.max(30, initialSize.current.height + dy);
+
+    onUpdate({
+      width: newWidth,
+      height: newHeight,
+    });
+  };
+
+  const handleResizeMouseUp = () => {
+    resizeStart.current = null;
+    initialSize.current = null;
+    endBatch();
+
+    document.removeEventListener("mousemove", handleResizeMouseMove);
+    document.removeEventListener("mouseup", handleResizeMouseUp);
+  };
+
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isSlideReadonly) return;
+
+    startBatch();
+    onSelect();
+
+    resizeStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+    };
+
+    initialSize.current = {
+      width: widgetInfo.width,
+      height: widgetInfo.height,
+    };
+
+    document.addEventListener("mousemove", handleResizeMouseMove);
+    document.addEventListener("mouseup", handleResizeMouseUp);
+  };
+
   useEffect(() => {
     if (!isSelected) {
       setCanEdit(false);
@@ -116,7 +176,26 @@ const TextWidget = ({
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
     >
+      {isSelected && !isSlideReadonly && (
+        <div
+          className="absolute w-6 h-6 bg-blue-500 -right-2 -bottom-2 cursor-nwse-resize text-white rounded-full flex justify-center items-center"
+          onMouseDown={handleResizeMouseDown}
+        >
+          <ArrowsPointingOutIcon className="size-4" />
+        </div>
+      )}
+
+      {isSelected && !isSlideReadonly && (
+        <div
+          className="absolute w-6 h-6 bg-red-600 -right-2 -top-2 cursor-pointer text-white rounded-full flex justify-center items-center"
+          onClick={onDelete}
+        >
+          <XMarkIcon className="size-4" />
+        </div>
+      )}
+
       <textarea
+        ref={textareaRef}
         className={`w-full h-full resize-none border-none outline=none bg-transparent focus-visible:outline-none text-xl text-gray-900 ${
           activeTool === "select" ? "cursor-default" : "cursor-text"
         }`}
@@ -124,8 +203,17 @@ const TextWidget = ({
         placeholder="Enter Text ..."
         autoFocus={canEdit}
         readOnly={!canEdit}
+        onMouseDown={(e) => {
+          if (!canEdit && e.detail === 1) {
+            e.preventDefault();
+          }
+        }}
+        onFocus={() => {
+          if (canEdit) {
+            startBatch();
+          }
+        }}
         onChange={(e) => onUpdate({ text: e.target.value })}
-        onFocus={startBatch}
         onBlur={() => {
           endBatch();
           setCanEdit(false);

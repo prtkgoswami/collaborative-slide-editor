@@ -56,8 +56,8 @@ const Slide = ({
       id: generateRandomId(5),
       x: posX,
       y: posY,
-      width: 500,
-      height: 80,
+      width: 250,
+      height: 120,
       text: "",
     };
 
@@ -72,7 +72,7 @@ const Slide = ({
 
         return { ...slide, widgets: updatedWidgets };
       });
-      console.log("Updated SLides", updatedSlides);
+      console.log("Updated Slides", updatedSlides);
 
       liveRoot.set("slides", updatedSlides);
     });
@@ -94,7 +94,7 @@ const Slide = ({
 
         return { ...slide, widgets: updatedWidgets };
       });
-      console.log("Updated SLides", updatedSlides);
+      console.log("Updated Slides", updatedSlides);
 
       liveRoot.set("slides", updatedSlides);
     });
@@ -121,7 +121,7 @@ const Slide = ({
 
         return { ...slide, widgets: updatedWidgets };
       });
-      console.log("Updated SLides", updatedSlides);
+      console.log("Updated Slides", updatedSlides);
 
       liveRoot.set("slides", updatedSlides);
     });
