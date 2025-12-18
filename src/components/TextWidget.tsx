@@ -1,8 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { type TextWidgetType } from "./Editor";
-import type { Tools } from "./Editor";
+import type { Tools, TypoBlock, TypoStyle } from "./Editor";
 import useEditorHistory from "@/hooks/useEditorHistory";
-import { ArrowsPointingOutIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowsPointingOutIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
+import WidgetTypographyTray from "./WidgetTypographyTray";
 
 type TextWidgetProps = {
   widgetInfo: TextWidgetType;
@@ -12,6 +16,24 @@ type TextWidgetProps = {
   onSelect: () => void;
   onDelete: () => void;
   onUpdate: (update: Partial<TextWidgetType>) => void;
+};
+
+const TYPOGRAPHY_BLOCK_MAP: Record<TypoBlock, string> = {
+  h1: "text-5xl font-semibold leading-tight tracking-tight",
+  h2: "text-4xl font-semibold leading-tight tracking-tight",
+  h3: "text-3xl font-medium leading-snug",
+  h4: "text-2xl font-medium leading-snug",
+  p: "text-xl font-normal leading-relaxed",
+};
+
+const TYPOGRAPHY_LINK =
+  "text-blue-600! cursor-pointer underline underline-offset-4 hover:text-blue-700";
+
+const TYPOGRAPHY_STYLE_MAP: Record<TypoStyle, string> = {
+  b: "font-bold!",
+  i: "italic",
+  s: "line-through",
+  u: "underline",
 };
 
 const TextWidget = ({
@@ -156,6 +178,32 @@ const TextWidget = ({
     document.addEventListener("mouseup", handleResizeMouseUp);
   };
 
+  const handleTypoBlockChange = (block: TypoBlock) => {
+    onUpdate({
+      typoBlock: block,
+    });
+  };
+
+  const handleLink = (linkHref: string) => {
+    onUpdate({
+      isLink: true,
+      linkHref,
+    });
+  };
+
+  const handleUnlink = () => {
+    onUpdate({
+      isLink: false,
+      linkHref: undefined,
+    });
+  };
+
+  const handleTypoStyleChange = (styles: TypoStyle[]) => {
+    onUpdate({
+      styles,
+    });
+  };
+
   useEffect(() => {
     if (!isSelected) {
       setCanEdit(false);
@@ -177,6 +225,18 @@ const TextWidget = ({
       onDoubleClick={handleDoubleClick}
     >
       {isSelected && !isSlideReadonly && (
+        <WidgetTypographyTray
+          selectedTypoBlock={widgetInfo.typoBlock}
+          selectedTypoStyles={widgetInfo.styles}
+          isLink={widgetInfo.isLink}
+          OnTypoBlockChange={handleTypoBlockChange}
+          onTypoStyleChange={handleTypoStyleChange}
+          onLink={handleLink}
+          onUnlink={handleUnlink}
+        />
+      )}
+
+      {isSelected && !isSlideReadonly && (
         <div
           className="absolute w-6 h-6 bg-blue-500 -right-2 -bottom-2 cursor-nwse-resize text-white rounded-full flex justify-center items-center"
           onMouseDown={handleResizeMouseDown}
@@ -194,32 +254,42 @@ const TextWidget = ({
         </div>
       )}
 
-      <textarea
-        ref={textareaRef}
-        className={`w-full h-full resize-none border-none outline=none bg-transparent focus-visible:outline-none text-xl text-gray-900 ${
-          activeTool === "select" ? "cursor-default" : "cursor-text"
-        }`}
-        value={widgetInfo.text}
-        placeholder="Enter Text ..."
-        autoFocus={canEdit}
-        readOnly={!canEdit}
-        onMouseDown={(e) => {
-          if (!canEdit && e.detail === 1) {
-            e.preventDefault();
-          }
-        }}
-        onFocus={() => {
-          if (canEdit) {
-            startBatch();
-          }
-        }}
-        onChange={(e) => onUpdate({ text: e.target.value })}
-        onBlur={() => {
-          endBatch();
-          setCanEdit(false);
-        }}
-        onKeyDown={handleKeyDown}
-      />
+      <a
+        href={widgetInfo.linkHref}
+        target="_blank"
+        className={`${widgetInfo.isLink ? "" : "pointer-events-none"}`}
+      >
+        <textarea
+          ref={textareaRef}
+          className={`w-full h-full resize-none border-none outline=none bg-transparent focus-visible:outline-none text-gray-900 ${
+            activeTool === "select" ? "cursor-default" : "cursor-text"
+          } ${
+            TYPOGRAPHY_BLOCK_MAP[widgetInfo.typoBlock]
+          } ${widgetInfo.styles.map((style) => TYPOGRAPHY_STYLE_MAP[style]).join(' ')} ${
+            widgetInfo.isLink ? TYPOGRAPHY_LINK : ""
+          }`}
+          value={widgetInfo.text}
+          placeholder="Enter Text ..."
+          autoFocus={canEdit}
+          readOnly={!canEdit}
+          onMouseDown={(e) => {
+            if (!canEdit && e.detail === 1) {
+              e.preventDefault();
+            }
+          }}
+          onFocus={() => {
+            if (canEdit) {
+              startBatch();
+            }
+          }}
+          onChange={(e) => onUpdate({ text: e.target.value })}
+          onBlur={() => {
+            endBatch();
+            setCanEdit(false);
+          }}
+          onKeyDown={handleKeyDown}
+        />
+      </a>
       {/* For Debug */}
       {/* <p className="text-xs text-blue-500">Widget ID: {widgetInfo.id}</p> */}
     </div>
