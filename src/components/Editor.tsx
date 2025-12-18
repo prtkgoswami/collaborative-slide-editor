@@ -7,6 +7,9 @@ import { useStorage } from "@liveblocks/react";
 
 export type Tools = "select" | "text";
 
+export type TypoBlock = 'h1' | 'h2' | 'h3' | 'h4' | 'p';
+export type TypoStyle = 'b' | 'u' | 's' | 'i';
+
 export type TextWidgetType = {
   id: string;
   x: number;
@@ -14,6 +17,10 @@ export type TextWidgetType = {
   width: number;
   height: number;
   text: string;
+  typoBlock: TypoBlock;
+  styles: TypoStyle[];
+  isLink?: boolean;
+  linkHref?: string;
 };
 
 export type SlideType = {

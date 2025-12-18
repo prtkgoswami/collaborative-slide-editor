@@ -59,6 +59,8 @@ const Slide = ({
       width: 250,
       height: 120,
       text: "",
+      typoBlock: "p",
+      styles: []
     };
 
     room.getStorage().then(({ root }) => {
